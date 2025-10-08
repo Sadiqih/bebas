@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>X-TRAGO Control</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #001a3f, #003366);
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    .container {
+      text-align: center;
+      width: 90%;
+      max-width: 600px;
+    }
+
+    .btn {
+      background: rgba(0, 80, 255, 0.15);
+      color: #fff;
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      border-radius: 12px;
+      padding: 10px 24px;
+      margin: 8px;
+      font-size: 18px;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(0, 200, 255, 0.4);
+      transition: all 0.2s ease;
+    }
+
+    .btn:hover {
+      background: rgba(0, 150, 255, 0.4);
+      box-shadow: 0 0 20px rgba(0, 255, 255, 0.7);
+      transform: scale(1.05);
+    }
+
+    .btn.active {
+      background: rgba(0, 200, 255, 0.8);
+      box-shadow: 0 0 30px rgba(0, 255, 255, 0.9);
+      transform: scale(1.1);
+    }
+
+    .slider-container {
+      background: rgba(0, 60, 120, 0.3);
+      border-radius: 20px;
+      padding: 15px 25px;
+      margin-top: 20px;
+      box-shadow: inset 0 0 15px rgba(0, 200, 255, 0.4);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 8px;
+      border-radius: 10px;
+      background: rgba(0, 255, 255, 0.4);
+      outline: none;
+      appearance: none;
+      margin-bottom: 10px;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      background: #00ffff;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #00ffff;
+      cursor: pointer;
+    }
+
+    #speedvalue {
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div>
+      <button class="btn" id="forwardBtn" onclick="sendCommand('forward', this)">Forward</button>
+      <button class="btn" id="stopBtn" onclick="sendCommand('stop', this)">Stop</button>
+      <button class="btn" id="backwardBtn" onclick="sendCommand('backward', this)">Backward</button>
+    </div>
+
+    <div class="slider-container">
+      <input type="range" id="speedSlider" min="0" max="100" value="0" oninput="updateSpeed(this.value)">
+      <div id="speedvalue">Speed: 0</div>
+    </div>
+  </div>
+
+  <script>
+    // ========================
+    // KONFIGURASI MQTT
+    // ========================
+    const clientId = "webclient_" + Math.random().toString(16).substr(2, 8);
+    const client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt", { clientId });
+
+    client.on("connect", () => {
+      console.log("✅ Connected to MQTT broker");
+    });
+
+    // ========================
+    // KIRIM DATA DENGAN EFEK TOMBOL
+    // ========================
+    function sendCommand(direction, btn) {
+      client.publish("direction", direction);
+      console.log("Publish direction: " + direction);
+
+      // efek klik
+      btn.classList.add("active");
+      setTimeout(() => btn.classList.remove("active"), 300);
+    }
+
+    // ========================
+    // UPDATE KECEPATAN
+    // ========================
+    function updateSpeed(value) {
+      document.getElementById("speedvalue").innerText = "Speed: " + value;
+      client.publish("speed", value.toString());
+      console.log("Publish speed: " + value);
+    }
+
+    // ========================
+    // RESPONSIVE FIX UNTUK IFRAME
+    // ========================
+    window.addEventListener("resize", adjustLayout);
+    function adjustLayout() {
+      const c = document.querySelector(".container");
+      const scale = Math.min(window.innerWidth / 700, 1);
+      c.style.transform = `scale(${scale})`;
+    }
+    adjustLayout();
+  </script>
+</body>
+</html>
