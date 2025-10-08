@@ -101,13 +101,24 @@
 
   <script>
     // ========================
-    // KONFIGURASI MQTT
+    // KONFIGURASI MQTT HIVE MQ CLOUD
     // ========================
-    const clientId = "webclient_" + Math.random().toString(16).substr(2, 8);
-    const client = mqtt.connect("wss://broker.hivemq.com:8884/mqtt", { clientId });
+    const options = {
+      username: "intelligent",
+      password: "Penem2018",
+      protocol: "wss",
+      port: 8884,
+      reconnectPeriod: 2000,
+    };
+
+    const client = mqtt.connect("wss://f89f938116df4dee81d5215df5ba4782.s1.eu.hivemq.cloud:8884/mqtt", options);
 
     client.on("connect", () => {
-      console.log("✅ Connected to MQTT broker");
+      console.log("✅ Connected to HiveMQ Cloud WebSocket");
+    });
+
+    client.on("error", (err) => {
+      console.error("❌ MQTT Error:", err);
     });
 
     // ========================
@@ -115,9 +126,8 @@
     // ========================
     function sendCommand(direction, btn) {
       client.publish("direction", direction);
-      console.log("Publish direction: " + direction);
+      console.log("📤 Publish direction:", direction);
 
-      // efek klik
       btn.classList.add("active");
       setTimeout(() => btn.classList.remove("active"), 300);
     }
@@ -128,7 +138,7 @@
     function updateSpeed(value) {
       document.getElementById("speedvalue").innerText = "Speed: " + value;
       client.publish("speed", value.toString());
-      console.log("Publish speed: " + value);
+      console.log("📤 Publish speed:", value);
     }
 
     // ========================
